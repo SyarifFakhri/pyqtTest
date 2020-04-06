@@ -4,11 +4,13 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QImage, QPixmap
 import PyQt5 as qt
+from tinydb import TinyDB, Query
 
 import pyqtgraph as pg
 import numpy as np
 
 import cv2
+
 
 class ImageCaptureThread(QThread):
     changePixmap = pyqtSignal(QImage)
@@ -71,9 +73,13 @@ class StatisticsWindow():
         vbox.addStretch(1)
 
         chart = self.totalAcceptedChart()
+        chart2 = self.totalAcceptedChart()
+        chart3 = self.totalAcceptedChart()
 
         layout.addLayout(vbox, 0, 0)
         layout.addWidget(chart, 0, 1)
+        layout.addWidget(chart2,1,1)
+        layout.addWidget(chart3, 2,1)
 
         widget = QWidget()
         widget.setLayout(layout)
@@ -82,6 +88,7 @@ class StatisticsWindow():
     def totalAcceptedChart(self):
         plot = pg.PlotWidget()
         plot.setBackground('w')
+        plot.setTitle('G vs NG plot', size='20pt')
 
         pen = pg.mkPen(color=(255,0,0))
         y1 = np.linspace(0,20, num=2)
@@ -115,20 +122,17 @@ class SettingsWindow():
 
         self.imageLabel = QLabel(mainWindow)
 
-        hbox = QHBoxLayout()
+        gridSettings = QGridLayout()
+        roiALabel = QLabel("ROI A")
+        roiALabel.setAlignment(Qt.AlignCenter)
+        roiBLabel = QLabel("ROI B")
+        roiBLabel.setAlignment(Qt.AlignCenter)
+        roiCLabel = QLabel("ROI C")
+        roiCLabel.setAlignment(Qt.AlignCenter)
 
-        GLabel = QLabel("G")
-        GLabel.setStyleSheet("background-color: #4a4a4a");
-        GLabel.setAlignment(Qt.AlignCenter)
-        GLabel.setFont(QtGui.QFont("Lato", pointSize=20, weight=QtGui.QFont.Bold))
-
-        NGLabel = QLabel("NG")
-        NGLabel.setStyleSheet("background-color: #4a4a4a")
-        NGLabel.setAlignment(Qt.AlignCenter)
-        NGLabel.setFont(QtGui.QFont("Lato", pointSize=20, weight=QtGui.QFont.Bold))
-
-        hbox.addWidget(GLabel)
-        hbox.addWidget(NGLabel)
+        gridSettings.addWidget(roiALabel, 0,0)
+        gridSettings.addWidget(roiBLabel, 0,1)
+        gridSettings.addWidget(roiCLabel, 0,2)
 
         rightVBox = QVBoxLayout()
         rightVBox.setSpacing(10)
@@ -145,9 +149,9 @@ class SettingsWindow():
         rightVBox.addStretch(10)
 
         layout.addLayout(vbox, 0, 0)
-        layout.addLayout(hbox, 1, 1)
         layout.addLayout(rightVBox, 0, 2)
         layout.addWidget(self.imageLabel, 0, 1)
+        layout.addLayout(gridSettings, 1,1)
 
         widget = QWidget()
         widget.setLayout(layout)
@@ -280,6 +284,12 @@ class MasterWindow(QMainWindow):
         self.show()
 
 if __name__ == "__main__":
+
+    db = TinyDB('database.json')
+    # db.purge()
+    title = Query()
+    db.upsert({'title':'goodvsNotGoodStats','goodSample':4, 'badSample':6}, title.title == 'goodvsNotGoodStats')
+
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('Fusion')
     palette = QtGui.QPalette()
