@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QGridLayout, QWidget, QPushButton, QVBoxLayout, QHBoxLayout
+from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QGridLayout, QWidget, QPushButton, QVBoxLayout, QHBoxLayout,QScrollArea
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QImage, QPixmap
@@ -72,14 +72,32 @@ class StatisticsWindow():
         vbox.addWidget(self.settingsLabel)
         vbox.addStretch(1)
 
-        chart = self.totalAcceptedChart()
-        chart2 = self.totalAcceptedChart()
-        chart3 = self.totalAcceptedChart()
+        vCharts = QVBoxLayout()
+
+        totalAccepted = self.totalAcceptedChart()
+        xAlignment = self.xAlignmentStats()
+        yAlignment = self.yAlignmentStats()
+        xyAlignment = self.xyAlignmentStats()
+
+
+        vCharts.addWidget(totalAccepted)
+        vCharts.addWidget(xAlignment)
+        vCharts.addWidget(yAlignment)
+        vCharts.addWidget(xyAlignment)
+
+        #add scroll
+        scroll = QScrollArea()
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        scroll.setWidgetResizable(True)
+        # scroll.setEnabled(True)
+        scroll.setMinimumHeight(500)
+        widget = QWidget()
+        widget.setLayout(vCharts)
+        scroll.setWidget(widget)
 
         layout.addLayout(vbox, 0, 0)
-        layout.addWidget(chart, 0, 1)
-        layout.addWidget(chart2,1,1)
-        layout.addWidget(chart3, 2,1)
+        # layout.addWidget(totalAccepted, 0, 1)
+        layout.addWidget(scroll, 0,1)
 
         widget = QWidget()
         widget.setLayout(layout)
@@ -87,8 +105,55 @@ class StatisticsWindow():
 
     def totalAcceptedChart(self):
         plot = pg.PlotWidget()
+        plot.setMouseEnabled(x=False, y=False)
+        plot.setMinimumHeight(200)
         plot.setBackground('w')
         plot.setTitle('G vs NG plot', size='20pt')
+
+        pen = pg.mkPen(color=(255,0,0))
+        y1 = np.linspace(0,20, num=2)
+        x = np.arange(2)
+        barGraph = pg.BarGraphItem(x=x, height=y1, width = 0.5, brush='r', pen=pen)
+
+        plot.addItem(barGraph)
+        return plot
+
+    def xAlignmentStats(self):
+        plot = pg.PlotWidget()
+        plot.setMouseEnabled(x=False, y=False)
+        plot.setMinimumHeight(200)
+        plot.setBackground('w')
+        plot.setTitle('X alignment Statistics', size='20pt')
+
+        pen = pg.mkPen(color=(209,0,59))
+        y1 = np.linspace(0,20, num=2)
+        x = np.arange(2)
+        barGraph = pg.BarGraphItem(x=x, height=y1, width = 0.5, brush='#d1003b', pen=pen)
+
+        plot.addItem(barGraph)
+        return plot
+
+    def yAlignmentStats(self):
+        plot = pg.PlotWidget()
+        plot.setMouseEnabled(x=False, y=False)
+        plot.setMinimumHeight(200)
+        plot.setBackground('w')
+        plot.setTitle('Y alignment Statistics', size='20pt')
+
+        pen = pg.mkPen(color=(255,0,0))
+        y1 = np.linspace(0,20, num=2)
+        x = np.arange(2)
+        barGraph = pg.BarGraphItem(x=x, height=y1, width = 0.5, brush='r', pen=pen)
+
+        plot.addItem(barGraph)
+        return plot
+
+    def xyAlignmentStats(self):
+        plot = pg.PlotWidget()
+        plot.setMouseEnabled(x=False, y=False)
+        plot.setMinimumHeight(200)
+        plot.setBackground('w')
+        plot.setTitle('XY alignment Statistics', size='20pt')
 
         pen = pg.mkPen(color=(255,0,0))
         y1 = np.linspace(0,20, num=2)
@@ -231,8 +296,8 @@ class MasterWindow(QMainWindow):
         self.imageCap = ImageCaptureThread(self)
         self.settingsImageCap = DebugImageThread(self)
 
-        self.showMainWindow(None)
-
+        # self.showMainWindow(None)
+        self.showStatsMenu(None)
     @pyqtSlot(QImage)
     def setImageCap(self,image):
         self.mainWindow.imageLabel.setPixmap(QPixmap.fromImage(image))
@@ -288,7 +353,7 @@ if __name__ == "__main__":
     db = TinyDB('database.json')
     # db.purge()
     title = Query()
-    db.upsert({'title':'goodvsNotGoodStats','goodSample':4, 'badSample':6}, title.title == 'goodvsNotGoodStats')
+    db.upsert({'title':'goodvsNotGoodStats','goodSample':5, 'badSample':6}, title.title == 'goodvsNotGoodStats')
 
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('Fusion')
